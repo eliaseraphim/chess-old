@@ -216,7 +216,7 @@ class chessBoard:
         return a % b == 0
 
     @staticmethod
-    def is_divisible_and_equal_to(a, b, c):
+    def is_remainder(a, b, c):
         return a % b == c
 
     @staticmethod
@@ -262,26 +262,22 @@ class chessBoard:
                     return symbol1
 
                 else:                                        # black cell
-                    if (self.is_divisible_and_equal_to(row, CELL_HEIGHT, 1) or
-                            self.is_divisible_and_equal_to(row, CELL_HEIGHT, 6)):
+                    if self.is_remainder(row, CELL_HEIGHT, 1) or self.is_remainder(row, CELL_HEIGHT, 6):
                         return symbol2
 
                     else:
-                        if (self.is_divisible_and_equal_to(col, CELL_WIDTH, 1) or
-                                self.is_divisible_and_equal_to(col, CELL_WIDTH, 13)):
+                        if self.is_remainder(col, CELL_WIDTH, 1) or self.is_remainder(col, CELL_WIDTH, 13):
                             return symbol2
                         else:
                             return symbol1
 
         else:                                                # black is starting cell
             if self.is_divisible(col // CELL_WIDTH, 2):
-                if (self.is_divisible_and_equal_to(row, CELL_HEIGHT, 1) or
-                        self.is_divisible_and_equal_to(row, CELL_HEIGHT, 6)):
+                if self.is_remainder(row, CELL_HEIGHT, 1) or self.is_remainder(row, CELL_HEIGHT, 6):
                     return symbol1
 
                 else:
-                    if (self.is_divisible_and_equal_to(col, CELL_WIDTH, 1) or
-                            self.is_divisible_and_equal_to(col, CELL_WIDTH, 13)):
+                    if self.is_remainder(col, CELL_WIDTH, 1) or self.is_remainder(col, CELL_WIDTH, 13):
                         return symbol1
                     else:
                         return symbol2
