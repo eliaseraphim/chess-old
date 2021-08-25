@@ -115,7 +115,11 @@ Midpoints
 # The board is navigated typically in row-major order.
 
 from units import *
+from helperFunctions import *
+from colorama import init as colorama_init
 from colorama import Fore, Back, Style
+
+colorama_init(strip=False)
 
 SIZE = 8
 RANKS = '87654321'
@@ -158,7 +162,10 @@ class chessBoard:
     #   2)
     def __init__(self):
         self.board = [[] for i in range(SIZE)]
+        self.ascii_board = [[] for i in range(CELL_HEIGHT * SIZE + 1)]
         self.set_board()
+        self.generate_ascii_board()
+        self.update_ascii_board()
 
     #
     def set_board(self):
@@ -179,45 +186,29 @@ class chessBoard:
                 else:  # all other rows empty
                     self.board[rank].append(None)
 
-    # colors --> white tiles --> cyan
-    #        --> black tiles --> red
-    # row 1 --> white, black, white, black, white, ...
-    # row 2 --> black, white, black, white,
-    def print_board(self):
+    def generate_ascii_board(self):
         width = SIZE * CELL_WIDTH
         height = SIZE * CELL_HEIGHT
-        text = ''
 
         for row in range(height + 1):
             for col in range(width + 1):
-                if self.is_divisible(row, CELL_HEIGHT):  # horizontal edge
+                if is_divisible(row, CELL_HEIGHT):  # horizontal edge
                     if self.is_corner(row, col, width, height):  # corners
-                        text += self.corner(row, col, width, height)
-                    elif self.is_divisible(col, CELL_WIDTH):     # intersections
-                        text += self.intersection(row, col, width, height)
+                        self.ascii_board[row].append(Fore.WHITE + self.corner(row, col, width, height))
+                    elif is_divisible(col, CELL_WIDTH):     # intersections
+                        self.ascii_board[row].append(Fore.WHITE + self.intersection(row, col, width, height))
                     else:
-                        text += '─'
+                        self.ascii_board[row].append(Fore.WHITE + '─')
 
-                elif self.is_divisible(col, CELL_WIDTH):   # vertical edge --> left / right
-                    text += '│'
+                elif is_divisible(col, CELL_WIDTH):   # vertical edge --> left / right
+                    self.ascii_board[row].append(Fore.WHITE + '│')
 
                 else:
-                    if (row // CELL_HEIGHT) % 2 == 0: # white is starting cell
-                        text += self.cell_character(row, col, ' ', '▒')
-                    else:                             # black is starting cell
-                        text += self.cell_character(row, col, '▒', ' ')
+                    if is_divisible(row // CELL_HEIGHT, 2):  # white is starting cell
+                        self.ascii_board[row].append(Fore.WHITE + self.cell_character(row, col, 'white'))
+                    else:                              # black is starting cell
+                        self.ascii_board[row].append(Fore.WHITE + self.cell_character(row, col, 'black'))
 
-            text += '\n'
-
-        print(text)
-
-    @staticmethod
-    def is_divisible(a, b):
-        return a % b == 0
-
-    @staticmethod
-    def is_remainder(a, b, c):
-        return a % b == c
 
     @staticmethod
     def is_corner(row, col, width, height):
@@ -252,35 +243,53 @@ class chessBoard:
         else:
             return '┼'
 
-    # NEED TO SET UP SITUATION TO RETURN PIECES SYMBOLS IF CELL IS OCCUPIED
-    # This is a little convoluted and could be simplified since their is repetition. Perhaps if I decide on if it's a
-    #   white tile or black tile, I can call the appropriate function for that colored tile instead?
-    def cell_character(self, row, col, symbol1, symbol2):
-        if symbol1 == ' ':                                   # white is starting cell
-            if self.is_divisible(row // CELL_HEIGHT, 2):
-                if self.is_divisible(col // CELL_WIDTH, 2):  # white cell
-                    return symbol1
+    @staticmethod
+    def cell_character(row, col, starting_tile):
+        local_row = row % CELL_HEIGHT
+        local_col = col % CELL_WIDTH
 
-                else:                                        # black cell
-                    if self.is_remainder(row, CELL_HEIGHT, 1) or self.is_remainder(row, CELL_HEIGHT, 6):
-                        return symbol2
-
-                    else:
-                        if self.is_remainder(col, CELL_WIDTH, 1) or self.is_remainder(col, CELL_WIDTH, 13):
-                            return symbol2
-                        else:
-                            return symbol1
-
-        else:                                                # black is starting cell
-            if self.is_divisible(col // CELL_WIDTH, 2):
-                if self.is_remainder(row, CELL_HEIGHT, 1) or self.is_remainder(row, CELL_HEIGHT, 6):
-                    return symbol1
-
+        if starting_tile == 'white':
+            if is_divisible(col // CELL_WIDTH, 2):  # white tile, just use spaces
+                return ' '
+            else:  # black tile
+                if 2 <= local_row <= 5 and 3 <= local_col <= 11:  # within border
+                    return ' '
                 else:
-                    if self.is_remainder(col, CELL_WIDTH, 1) or self.is_remainder(col, CELL_WIDTH, 13):
-                        return symbol1
-                    else:
-                        return symbol2
+                    return '▒'
 
+        else:  # starting_tile == 'black'
+            if is_divisible(col // CELL_WIDTH, 2):  # black tile
+                if local_row == 1 or local_row == 6:  # top / bottom of black border
+                    return '▒'
+                elif 1 <= local_col <= 2 or 12 <= local_col <= 13:
+                    return '▒'
+                else:
+                    return ' '
             else:
-                return symbol2
+                return ' '
+
+    def display_ascii_board(self):
+        for row in self.ascii_board:
+            print(''.join(row))
+
+    def update_ascii_board(self):
+        width = SIZE * CELL_WIDTH
+        height = SIZE * CELL_HEIGHT
+
+        for row in range(2, height, CELL_HEIGHT):
+            cell_row = row // CELL_HEIGHT
+            for col in range(5, width, CELL_WIDTH):
+                cell_col = col // CELL_WIDTH
+                if self.is_occupied(cell_row, cell_col):
+                    self.draw_unit(row, col, self.board[cell_row][cell_col])
+
+    def is_occupied(self, cell_row, cell_col):
+        return isinstance(self.board[cell_row][cell_col], unit)
+
+    def draw_unit(self, row, col, _unit):
+        for i in range(DRAW_HEIGHT):
+            for j in range(DRAW_WIDTH):
+                if _unit.color == 'white':
+                    self.ascii_board[row + i][col + j] = Fore.RED + _unit.symbol[i][j]
+                else:
+                    self.ascii_board[row + i][col + j] = Fore.CYAN + _unit.symbol[i][j]

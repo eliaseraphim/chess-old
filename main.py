@@ -24,7 +24,7 @@ def main():
     p1, p2 = players()
     board = chessBoard()
 
-    board.print_board()
+    board.display_ascii_board()
 
     play()
 

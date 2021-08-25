@@ -55,6 +55,9 @@ Pawn
 01234
 """
 
+DRAW_WIDTH = 5
+DRAW_HEIGHT = 4
+
 king_symbol = (
     '  ▲  ',
     '▌ █ ▐',
