@@ -1,5 +1,5 @@
-# author   / elia deppe
-# filename / chessBoard.py
+# author   | elia deppe
+# filename | chessBoard.py
 
 """
 Tiles are 8 Tall and 14 Wide (Counting Intersection(s) and Corners)
@@ -101,7 +101,6 @@ Midpoints
 """
 
 # board diagram
-#             ♔♔
 #             0  1 2  3 4  5 6  7   < -- column
 # rank -- | 8 ⬛ ⬜ ⬛ ⬜ ⬛ ⬜ ⬛ ⬜ 0 | -- row
 #         | 7 ⬜ ⬛ ⬜ ⬛ ⬜ ⬛ ⬜ ⬛ 1 |
@@ -131,8 +130,6 @@ UNIT_DISPLAY_COLUMNS = (5, 6, 7, 8, 9)
 UNIT_DISPLAY_ROWS = (2, 3, 4, 5)
 
 # dictionaries for algebraic notation conversion to list positions
-
-
 RANK_TO_POS = {i: RANKS[i] for i in range(SIZE)}
 FILE_TO_POS = {i: FILES[i] for i in range(SIZE)}
 
@@ -148,26 +145,40 @@ TYPE = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook']
 # class / chessBoard
 # description: chessboard class, upon which the game takes place
 class chessBoard:
-    # constructor
-    #   parameter(s)
-    #       none
-    #   return value(s)
-    #       None
-    #
-    # description: initialize the chess board, and set the board for the start of a game.
-    #   1) create an empty 2d list to represent the board. the outer list will be 8 lists long
-    #       --> rows    | ranks
-    #       --> columns | files
-    #       chessBoard[file] --> access a position on the board
-    #   2)
+    """
+    __init__
+        parameter(s)
+            self | chessBoard | current instance of the class chessBoard
+        return value(s)
+            self | chessBoard | current instance of the class chessBoard
+
+    description: constructor. initialize the chess board, and set the board for the start of a game.
+        1) create an empty 2d list to represent the board. the outer list will be 8 lists long
+            --> rows    | ranks
+            --> columns | files
+            chessBoard[file] --> access a position on the board
+        2)
+    """
     def __init__(self):
-        self.board = [[] for i in range(SIZE)]
-        self.ascii_board = [[] for i in range(CELL_HEIGHT * SIZE + 1)]
+        self.board = [[] for i in range(SIZE)]  # 8 x 8 logical chess board
+        self.ascii_board = [[] for i in range(CELL_HEIGHT * SIZE + 1)]  # visual board for display
         self.set_board()
         self.generate_ascii_board()
-        self.update_ascii_board()
 
-    #
+    """
+    set_board
+        parameter(s)
+            self | chessBoard | current instance of the class chessBoard
+        return value(s)
+            none
+            
+    description: sets the playing board to be used for logical operations. this playing board is an 8 x 8 list of 
+        objects of parent type unit or None. All units will be a child class of unit: pawn, knight, bishop, rook,
+        queen, or king. a piece that occupies this space on the logical board does so on the visual board as well.
+        a position in the list that contains None represents an empty cell.
+        
+        set_board sets the board for the beginning of the game
+    """
     def set_board(self):
         for rank in range(SIZE):
             for file in range(SIZE):
@@ -186,6 +197,15 @@ class chessBoard:
                 else:  # all other rows empty
                     self.board[rank].append(None)
 
+    """
+    generate_ascii_board
+        parameter(s)
+            self | chessBoard | current instance of the class chessBoard
+        return value(s)
+            none
+    
+    description: generates a blank ascii board, and saves it to the current instance's ascii_board 2d list.
+    """
     def generate_ascii_board(self):
         width = SIZE * CELL_WIDTH
         height = SIZE * CELL_HEIGHT
@@ -209,7 +229,17 @@ class chessBoard:
                     else:                              # black is starting cell
                         self.ascii_board[row].append(Fore.WHITE + self.cell_character(row, col, 'black'))
 
-
+    """
+    is_corner (static)
+        parameter(s)
+            row    | Integer | current row in 2D grid for self.ascii_board
+            col    | Integer | current column in 2D grid for self.ascii_board
+            width  | Integer | the width of the board (length of the rows or lists)
+            height | Integer | the height of the board (number of rows or lists)
+        return value(s)
+            True   | Boolean | True if the current row and col represents the corner of the board.
+            False  | Boolean | False if the current row and col do not represent the corner of the board.
+    """
     @staticmethod
     def is_corner(row, col, width, height):
         return (
@@ -219,6 +249,21 @@ class chessBoard:
                 (row == height and col == width)
         )
 
+    """
+    corner (static)
+        parameter(s)
+            row    | Integer | current row in 2D grid for self.ascii_board
+            col    | Integer | current column in 2D grid for self.ascii_board
+            width  | Integer | the width of the board (length of the rows or lists)
+            height | Integer | the height of the board (number of rows or lists)
+        return value(s)
+            '┌'    | String  | top left corner
+            '┐'    | String  | top right corner
+            '└'    | String  | bottom left corner
+            '┘'    | String  | bottom right corner
+            
+    description: returns the correct corner given the current row and column
+    """
     @staticmethod
     def corner(row, col, width, height):
         if row == 0 and col == 0:         # top left
@@ -230,6 +275,22 @@ class chessBoard:
         else:                             # bottom right
             return '┘'
 
+    """
+    intersection
+        parameter(s)
+            row    | Integer | current row in 2D grid for self.ascii_board
+            col    | Integer | current column in 2D grid for self.ascii_board
+            width  | Integer | the width of the board (length of the rows or lists)
+            height | Integer | the height of the board (number of rows or lists)
+        return value(s)
+            '┬'    | String  | top border intersection
+            '┴'    | String  | bottom border intersection
+            '├'    | String  | left border intersection
+            '┤'    | String  | right border intersection
+            '┼'    | String  | inner intersection
+            
+    description: returns the correct intersection symbol given the current row and column
+    """
     @staticmethod
     def intersection(row, col, width, height):
         if row == 0:         # top edge
@@ -243,6 +304,19 @@ class chessBoard:
         else:
             return '┼'
 
+    """
+    cell_character
+        parameter(s)
+            row           | Integer | current row in 2D grid for self.ascii_board
+            col           | Integer | current column in 2D grid for self.ascii_board
+            starting_tile | String  | the starting tile for the row's color
+        return value(s)
+            ' '           | String  | a space for white tiles or empty positions
+            '▒'           | String  | a symbol used for the border for black tiles
+    
+    description: returns the character that belongs in the cell at that current position. this is either a space or ▒
+    which is used for the border of black tiles
+    """
     @staticmethod
     def cell_character(row, col, starting_tile):
         local_row = row % CELL_HEIGHT
@@ -268,10 +342,25 @@ class chessBoard:
             else:
                 return ' '
 
+    """
+    display_ascii_board
+        parameter(s)
+            self | chessBoard | current instance of the class chessBoard
+        return value(s)
+            none
+    
+    description: displays the ascii chess board to the user, printing one row at a time
+    """
     def display_ascii_board(self):
+        self.update_ascii_board()
         for row in self.ascii_board:
             print(''.join(row))
 
+    """
+    update_ascii_board
+        parameter(s)
+            updates the ascii board to match the current state of logical board
+    """
     def update_ascii_board(self):
         width = SIZE * CELL_WIDTH
         height = SIZE * CELL_HEIGHT
@@ -280,8 +369,7 @@ class chessBoard:
             cell_row = row // CELL_HEIGHT
             for col in range(5, width, CELL_WIDTH):
                 cell_col = col // CELL_WIDTH
-                if self.is_occupied(cell_row, cell_col):
-                    self.draw_unit(row, col, self.board[cell_row][cell_col])
+                self.draw_unit(row, col, self.board[cell_row][cell_col])
 
     def is_occupied(self, cell_row, cell_col):
         return isinstance(self.board[cell_row][cell_col], unit)
@@ -289,7 +377,10 @@ class chessBoard:
     def draw_unit(self, row, col, _unit):
         for i in range(DRAW_HEIGHT):
             for j in range(DRAW_WIDTH):
-                if _unit.color == 'white':
-                    self.ascii_board[row + i][col + j] = Fore.RED + _unit.symbol[i][j]
+                if _unit is not None:
+                    if _unit.color == 'white':
+                        self.ascii_board[row + i][col + j] = Fore.RED + _unit.symbol[i][j]
+                    else:
+                        self.ascii_board[row + i][col + j] = Fore.CYAN + _unit.symbol[i][j]
                 else:
-                    self.ascii_board[row + i][col + j] = Fore.CYAN + _unit.symbol[i][j]
+                    self.ascii_board[row + i][col + j] = Fore.WHITE + ' '
