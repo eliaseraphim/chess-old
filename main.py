@@ -10,10 +10,7 @@
 # start date: 03/18/21
 
 from chessBoard import chessBoard
-
-
-def players():
-    return 1, 2
+from player import player
 
 
 def play():
@@ -21,12 +18,9 @@ def play():
 
 
 def main():
-    p1, p2 = players()
-    board = chessBoard()
-
-    board.display_ascii_board()
-
-    play()
+    p1, p2 = player('Player 1'), player('Player 2')
+    board = chessBoard(p1, p2)
+    play(p1, p2, board)
 
 
 if __name__ == '__main__':

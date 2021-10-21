@@ -149,6 +149,8 @@ class chessBoard:
     __init__
         parameter(s)
             self | chessBoard | current instance of the class chessBoard
+            p1   | player     | player 1
+            p2   | player     | player 2
         return value(s)
             self | chessBoard | current instance of the class chessBoard
 
@@ -159,11 +161,14 @@ class chessBoard:
             chessBoard[file] --> access a position on the board
         2)
     """
-    def __init__(self):
+    def __init__(self, p1, p2):
         self.board = [[] for i in range(SIZE)]  # 8 x 8 logical chess board
         self.ascii_board = [[] for i in range(CELL_HEIGHT * SIZE + 1)]  # visual board for display
+        self.p1, self.p2 = p1, p2
+
         self.set_board()
         self.generate_ascii_board()
+        self.set_player_order()
 
     """
     set_board
@@ -301,7 +306,7 @@ class chessBoard:
             return '├'
         elif col == width:   # right edge
             return '┤'
-        else:
+        else:                # intersection
             return '┼'
 
     """
@@ -359,7 +364,10 @@ class chessBoard:
     """
     update_ascii_board
         parameter(s)
-            updates the ascii board to match the current state of logical board
+            self | chessBoard | current instance of the class chessBoard
+        return value(s)
+            none
+    description: updates the ascii board to match the current state of logical board
     """
     def update_ascii_board(self):
         width = SIZE * CELL_WIDTH
@@ -371,9 +379,30 @@ class chessBoard:
                 cell_col = col // CELL_WIDTH
                 self.draw_unit(row, col, self.board[cell_row][cell_col])
 
+    """
+    is_occupied
+        parameter(s)
+            self       | chessBoard | current instance of the class chessBoard
+            cell_row   | int        | row the cell occupies
+            cell_col   | int        | column the cell occupies
+        return value(s)
+            True/False | boolean    | returns True or False depending on if a unit occupies the cell on the board
+    """
     def is_occupied(self, cell_row, cell_col):
         return isinstance(self.board[cell_row][cell_col], unit)
 
+    """
+    draw_unit
+        parameter(s)
+            self  | chessBoard | current instance of the class chessBoard
+            row   | int        | current row of the ascii_board
+            col   | col        | current col of the ascii_board
+            _unit | unit       | the current unit to be drawn
+        return value(s)
+            none
+    description: draws the unit on the ascii_board in full, starting from the top left corner. if there is no unit on 
+    the current cell, then the cell is reset to the original board color.
+    """
     def draw_unit(self, row, col, _unit):
         for i in range(DRAW_HEIGHT):
             for j in range(DRAW_WIDTH):
@@ -384,3 +413,6 @@ class chessBoard:
                         self.ascii_board[row + i][col + j] = Fore.CYAN + _unit.symbol[i][j]
                 else:
                     self.ascii_board[row + i][col + j] = Fore.WHITE + ' '
+
+    def set_player_order(self):
+        pass
