@@ -120,6 +120,8 @@ from colorama import Fore, Back, Style
 
 colorama_init(strip=False)
 
+# ------------------------- BOARD INFO ------------------------- #
+
 SIZE = 8
 RANKS = '87654321'
 FILES = 'abcdefgh'
@@ -130,12 +132,12 @@ UNIT_DISPLAY_COLUMNS = (5, 6, 7, 8, 9)
 UNIT_DISPLAY_ROWS = (2, 3, 4, 5)
 
 # dictionaries for algebraic notation conversion to list positions
-RANK_TO_POS = {i: RANKS[i] for i in range(SIZE)}
-FILE_TO_POS = {i: FILES[i] for i in range(SIZE)}
+POS_TO_RANK = {i: RANKS[i] for i in range(SIZE)}
+POS_TO_FILE = {i: FILES[i] for i in range(SIZE)}
 
 # dictionaries for list positions conversion to algebraic notation
-POS_TO_RANK = {RANKS[i]: i for i in range(SIZE)}
-POS_TO_FILE = {FILES[i]: i for i in range(SIZE)}
+RANK_TO_POS = {RANKS[i]: i for i in range(SIZE)}
+FILE_TO_POS = {FILES[i]: i for i in range(SIZE)}
 
 # units and unit types, in starting order
 UNIT = [rook, knight, bishop, queen, king, bishop, knight, rook]
@@ -149,8 +151,8 @@ class chessBoard:
     __init__
         parameter(s)
             self | chessBoard | current instance of the class chessBoard
-            p1   | player     | player 1
-            p2   | player     | player 2
+            p1   | player     | player 1 - white (red)
+            p2   | player     | player 2 - black (blue)
         return value(s)
             self | chessBoard | current instance of the class chessBoard
 
@@ -162,13 +164,12 @@ class chessBoard:
         2)
     """
     def __init__(self, p1, p2):
-        self.board = [[] for i in range(SIZE)]  # 8 x 8 logical chess board
+        self.logic_board = [[] for i in range(SIZE)]  # 8 x 8 logical chess board
         self.ascii_board = [[] for i in range(CELL_HEIGHT * SIZE + 1)]  # visual board for display
         self.p1, self.p2 = p1, p2
 
         self.set_board()
         self.generate_ascii_board()
-        self.set_player_order()
 
     """
     set_board
@@ -182,25 +183,50 @@ class chessBoard:
         queen, or king. a piece that occupies this space on the logical board does so on the visual board as well.
         a position in the list that contains None represents an empty cell.
         
-        set_board sets the board for the beginning of the game
+        set_board sets the logical board for the beginning of the game
+        
+        updates
+            - 1/13/21
+                - set_board now creates the unit and saves said unit to a variable before appending the
+                    unit to the logical board, as well as the appropriate player's pieces
+                - fixed unit construction 3rd argument to be position instead of (rank, position)
     """
     def set_board(self):
         for rank in range(SIZE):
             for file in range(SIZE):
+                piece = None
                 unit_type = TYPE[file]
                 position = (rank, file)
-                tile = FILE_TO_POS[file] + RANK_TO_POS[rank]
+                tile = POS_TO_FILE[file] + POS_TO_RANK[rank]
 
-                if rank == 0:  # back row | black
-                    self.board[rank].append(UNIT[file]('black', unit_type, (rank, position), tile))
-                elif rank == 1:  # front row | black
-                    self.board[rank].append(pawn('black', 'pawn', (rank, position), tile))
-                elif rank == 6:  # front row | white
-                    self.board[rank].append(pawn('white', 'pawn', (rank, position), tile))
-                elif rank == 7:  # front row | white
-                    self.board[rank].append(UNIT[file]('white', unit_type, (rank, position), tile))
+                print(unit_type, position, tile)
+
+                # if we are currently upper or lower two ranks (starting ranks)
+                if rank <= 1 or rank >= 6:
+                    # upper --> black
+                    if rank <= 1:
+                        # assign piece to blacks pieces
+                        if rank == 0:  # back row | black
+                            piece = UNIT[file]('black', unit_type, position, tile)
+                        elif rank == 1:  # front row | black
+                            piece = pawn('black', 'pawn', position, tile)
+
+                        self.p2.pieces.append(piece)
+
+                    # lower --> white
+                    else:
+                        # assign piece to whites pieces
+                        if rank == 6:  # front row | white
+                            piece = pawn('white', 'pawn', position, tile)
+                        elif rank == 7:  # front row | white
+                            piece = UNIT[file]('white', unit_type, position, tile)
+
+                        self.p1.pieces.append(piece)
+
+                    # add to the board
+                    self.logic_board[rank].append(piece)
                 else:  # all other rows empty
-                    self.board[rank].append(None)
+                    self.logic_board[rank].append(None)
 
     """
     generate_ascii_board
@@ -377,7 +403,7 @@ class chessBoard:
             cell_row = row // CELL_HEIGHT
             for col in range(5, width, CELL_WIDTH):
                 cell_col = col // CELL_WIDTH
-                self.draw_unit(row, col, self.board[cell_row][cell_col])
+                self.draw_unit(row, col, self.logic_board[cell_row][cell_col])
 
     """
     is_occupied
@@ -389,7 +415,7 @@ class chessBoard:
             True/False | boolean    | returns True or False depending on if a unit occupies the cell on the board
     """
     def is_occupied(self, cell_row, cell_col):
-        return isinstance(self.board[cell_row][cell_col], unit)
+        return isinstance(self.logic_board[cell_row][cell_col], unit)
 
     """
     draw_unit
@@ -414,5 +440,5 @@ class chessBoard:
                 else:
                     self.ascii_board[row + i][col + j] = Fore.WHITE + ' '
 
-    def set_player_order(self):
+    def game_over(self):
         pass
